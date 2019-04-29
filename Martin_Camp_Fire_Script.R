@@ -9,6 +9,7 @@
 #install.packages("devtools")
 #install.packages("ggmap")
 #install.packages("tidyverse")
+#install.packages("ggplot2")
 
 ####Attaching packages into library####
 
@@ -21,6 +22,7 @@ library(RCurl)
 library(devtools)
 library(ggmap)
 library(tidyverse)
+library(ggplot2)
 
 ####Set working directory####
 
@@ -147,10 +149,36 @@ my_col=c("white", "darkolivegreen","darkolivegreen4","limegreen", "yellow2", "or
 
 ##Plot Header##
 
-plot(dNBR_reclass,col=my_col,legend=F,box=T,axes=T, main="Burn Severity \nCamp Fire, California \n8-25 Nov 2018 ") 
+plot(dNBR_reclass,col=my_col,legend=F,box=T,axes=F, main="Burn Severity \nCamp Fire, California \n8-25 Nov 2018 ") 
 
 ##Plot fireperimeter outline##
 plot(fireperimeter, add = TRUE)
 
 ##Plots Legend##
 legend(x='bottomright', legend =rat$legend, fill = my_col, y=4415000,cex = 0.59)
+
+####Plot with Severity Class Areas in addition to map####
+
+###Calculate Class Areas###
+
+##Create Table from reclassified Raster##
+
+Area<-table(getValues(dNBR_reclass))
+
+##Assign Classnames to Table##
+
+names(Area) <-c("NA", "Enhanced Regrowth, High", "Enhanced Regrowth, Low", "Unburned", "Low Severity", "Moderate-low Severity", "Moderate-high Severity", "High Severity")
+Area
+
+##Calcutlate Area from Pixelssize (20x20m) and convert from Meters to Kilometers##
+
+Area <- Area*400/1000000
+
+##Convert to Dataframe to be able to plot with ggplot##
+Area <- as.data.frame(Area)
+
+##ggplot##
+Severity<-ggplot(Area, aes(x=Var1, y=Freq))+ geom_bar(stat= "identity")
+Severity + theme(axis.text.x=element_text(angle=45, hjust=1))+
+  xlab("Severity Classes")+
+  ylab("Square Kilometers")
